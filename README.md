@@ -167,14 +167,14 @@ Für die Profile Calculation sind die SRTM Files notwendig, diese sind öffentli
 Für die lokale OSM Server Verwendung muss der Datei "osm/hamnetdb-lf.js" folgendes ergänzt werden:
 
     }
-        else if (source == "local") //local
-        {
-            var mapnikUrl = 'http://' + window.location.hostname + ':8080/tile/{z}/{x}/{y}.png';
-            var mapnikUrl1 = 'http://' + window.location.hostname + ':8080/tile/{z}/{x}/{y}.png';
-            var landscapeUrl = 'http://' + window.location.hostname + ':8080/tiles_topo/{z}/{x}/{y}.png';
-            var cycleUrl = 'http://' + window.location.hostname + ':8080/tiles_cyclemap/{z}/{x}/{y}.pn';
-            var satUrl= 'http://' + window.location.hostname + ':8080/tiles_sat/{z}/{x}/{y}.jpg';
-            var mapnikZoom = 16 ;
-            var landscapeZoom =16;
-            var cycleZoom = 16;
-            var satZoom = 11;
+    else if (source == "local") //local
+    {
+        var mapnikUrl = 'http://' + window.location.hostname + ':8080/tile/{z}/{x}/{y}.png';
+        var mapnikUrl1 = 'http://' + window.location.hostname + ':8080/tile/{z}/{x}/{y}.png';
+        var landscapeUrl = 'http://' + window.location.hostname + ':8080/tiles_topo/{z}/{x}/{y}.png';
+        var cycleUrl = 'http://' + window.location.hostname + ':8080/tiles_cyclemap/{z}/{x}/{y}.pn';
+        var satUrl= 'http://' + window.location.hostname + ':8080/tiles_sat/{z}/{x}/{y}.jpg';
+        var mapnikZoom = 16 ;
+        var landscapeZoom =16;
+        var cycleZoom = 16;
+        var satZoom = 11;

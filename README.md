@@ -3,34 +3,33 @@ Die HamnetDB als Webseite gibt es auf GitHub (https://github.com/hamnetdb/hamnet
 
 ## Installation
 
-´´´
-# Install Packages
-sudo apt-get install apache2 perl libdbd-mysql-perl build-essential libx11-dev libXext-dev libjpeg-dev libpng-dev mysql-server mysql-client
-sudo a2enmod CGI
+    # Install Packages
+    sudo apt-get install apache2 perl libdbd-mysql-perl build-essential libx11-dev libXext-dev libjpeg-dev libpng-dev mysql-server mysql-client
+    sudo a2enmod CGI
 
-# Configure MySQL
-sudo mysql -e "CREATE DATABASE IF NOT EXISTS hamnet;"
-sudo mysql -e "CREATE USER IF NOT EXISTS 'hamnet'@'localhost' IDENTIFIED BY 'securepassword234!';"
-sudo mysql -e "GRANT ALL ON hamnet.* TO 'hamnet'@'localhost';"
-sudo nano /etc/mysql/mysql.ini ??? => Change Listen Port to 3307
-sudo service mysql start
+    # Configure MySQL
+    sudo mysql -e "CREATE DATABASE IF NOT EXISTS hamnet;"
+    sudo mysql -e "CREATE USER IF NOT EXISTS 'hamnet'@'localhost' IDENTIFIED BY 'securepassword234!';"
+    sudo mysql -e "GRANT ALL ON hamnet.* TO 'hamnet'@'localhost';"
+    sudo nano /etc/mysql/mysql.ini ??? => Change Listen Port to 3307
+    sudo service mysql start
 
-# Create Directories
-sudo mkdir /var/www/hamnet
-sudo mkdir /var/www/hamnetressources
-sudo mkdir /var/www/hamnetressources/rftools
-sudo mkdir /var/www/hamnetressources/tile_output
-sudo chown www-data:www-data /var/www/hamnet -R
-sudo chown www-data:www-data /var/www/hamnetressources -R
+    # Create Directories
+    sudo mkdir /var/www/hamnet
+    sudo mkdir /var/www/hamnetressources
+    sudo mkdir /var/www/hamnetressources/rftools
+    sudo mkdir /var/www/hamnetressources/tile_output
+    sudo chown www-data:www-data /var/www/hamnet -R
+    sudo chown www-data:www-data /var/www/hamnetressources -R
 
-# Clone HamnetDB and Import Database
-sudo git clone https://github.com/hamndetdb/hamnetdb.git /var/www/hamnet
-wget -qO- 'https://hamnetdb.net/dump.cgi' | mysql --database hamnet
+    # Clone HamnetDB and Import Database
+    sudo git clone https://github.com/hamndetdb/hamnetdb.git /var/www/hamnet
+    wget -qO- 'https://hamnetdb.net/dump.cgi' | mysql --database hamnet
 
-# Clone Profile Calculator
-sudo git clone https://github.com/oe5hpm/dxlAPRS.git /var/www/hamnetressources/rftools
+    # Clone Profile Calculator
+    sudo git clone https://github.com/oe5hpm/dxlAPRS.git /var/www/hamnetressources/rftools
 sudo make /var/www/hamnetressources/rftools
-´´´
+
 
 ## Cronjob für HamnetDB Database
 Die Daten von der HamnetDB können mit einem Cronjob, solange eine Verbindung besteht, regelmäßig aktuallisiert werden. Die Monitoringdaten werden ebenfalls geladen. Sind die Daten älter als 2 Stunden, weden die Sites als offline bzw. unbekannt markiert. Der Aktuallisierungintervall sollte am besten innerhalb von 2h liegen. 

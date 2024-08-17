@@ -5,6 +5,7 @@ alias: pbx.example.com
 databases:
   - hamnet
 dis_sites:
-  - default
+  - 000default
 sites:
   - hamnetdb
+db_pw: supersicher123

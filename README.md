@@ -2,6 +2,7 @@
 Die HamnetDB als Webseite gibt es auf GitHub (https://github.com/hamnetdb/hamnetdb) direkt für den eigenen Webspace. Ebenfalls kann die SQL Datei mit den aktullen HamnetDB Daten von https://hamnetdb.net heruntergeladen werden.
 
 ## Installation
+
 ´´´
 # Install Packages
 sudo apt-get install apache2 perl libdbd-mysql-perl build-essential libx11-dev libXext-dev libjpeg-dev libpng-dev mysql-server mysql-client
@@ -11,7 +12,7 @@ sudo a2enmod CGI
 sudo mysql -e "CREATE DATABASE IF NOT EXISTS hamnet;"
 sudo mysql -e "CREATE USER IF NOT EXISTS 'hamnet'@'localhost' IDENTIFIED BY 'securepassword234!';"
 sudo mysql -e "GRANT ALL ON hamnet.* TO 'hamnet'@'localhost';"
-# Ändern des MySQL Porst auf 3307
+sudo nano /etc/mysql/mysql.ini ??? => Change Listen Port to 3307
 sudo service mysql start
 
 # Create Directories

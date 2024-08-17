@@ -1,0 +1,31 @@
+<VirtualHost *:88>
+
+	ServerAdmin {{ ServerAdmin }}
+	DocumentRoot /var/www/hamnet
+	ServerName {{ url }}
+	ServerAlias {{ alias }}
+    ServerAlias *
+    ServerAlias {{ ansible_default_ipv4.address }}
+
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    Protocols h2 h2c http/1.1
+    H2Push on
+    H2PushPriority * after
+    H2PushPriority text/css before
+    H2PushPriority image/jpg after 32
+    H2PushPriority image/jpeg after 32
+    H2PushPriority image/png after 32
+    H2PushPriority application/javascript interleaved
+
+    <Directory /var/www/hamnet/>
+        AddHandler cgi-script .cgi .pl
+        AddDefaultCharset UTF-8
+        Options FollowSymlinks ExecCGI
+        DirectoryIndex index.cgi index.html
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+</VirtualHost>

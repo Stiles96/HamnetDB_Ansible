@@ -1,0 +1,10 @@
+---
+ServerAdmin: IT-Service@example.com
+url: hamnetdb.examlple.com
+alias: pbx.example.com
+databases:
+  - hamnet
+dis_sites:
+  - default
+sites:
+  - hamnetdb

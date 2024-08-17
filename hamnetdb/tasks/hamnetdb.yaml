@@ -1,0 +1,214 @@
+---
+- name: Install Apache2 and PHP
+  become: true
+  apt:
+    name: 
+    - apache2
+    - imagemagick
+    state: present
+    update_cache: yes
+  ignore_errors: yes
+
+- name: Create http2 Config File
+  become: true
+  template:
+    src: "http2.conf.j2"
+    dest: "/etc/apache2/conf-available/http2.conf"
+  notify: "Restart Apache"
+
+- name: Disabale modules
+  become: true
+  shell: /usr/sbin/a2dismod {{ item }}
+  with_items:
+    - mpm_prefork
+  notify: "Restart Apache"
+  ignore_errors: yes
+
+- name: Enable modules
+  become: true
+  shell: /usr/sbin/a2enmod {{ item }}
+  with_items:
+    - headers
+    - env
+    - dir
+    - mime
+    - rewrite
+    - proxy_fcgi
+    - setenvif
+    - http2
+    - proxy
+    - proxy_http
+    - proxy_wstunnel
+    - mpm_event
+  notify: "Restart Apache"
+  ignore_errors: yes
+
+- name: Enable Config
+  become: true
+  shell: /usr/sbin/a2enconf {{ item }}
+  with_items:
+    - http2
+  notify: "Restart Apache"
+  ignore_errors: yes
+
+- name: Copy Config Files
+  become: true
+  template:
+    src: "{{ item }}.conf.j2"
+    dest: "/etc/apache2/sites-available/{{ item }}.conf"
+    owner: root
+    mode: 0611
+  with_items: "{{ sites }}"
+  notify: 
+    - "Restart Apache"
+
+- name: Enable Sites
+  become: true
+  shell: /usr/sbin/a2ensite {{ item }}
+  with_items: "{{ sites }}"
+  notify: "Restart Apache"
+  ignore_errors: yes
+
+- name: Disable Sites
+  become: true
+  shell: /usr/sbin/a2ensite {{ item }}
+  with_items: "{{ dis_sites }}"
+  notify: "Restart Apache"
+  ignore_errors: yes
+
+- name: Install MySQL
+  apt:
+    name: 
+      - mysql-server
+      - mysql-client
+    state: present
+    update_cache: yes
+  ignore_errors: yes
+
+- name: Create Database
+  shell: mysql -e "CREATE DATABASE IF NOT EXISTS {{ item }};"
+  with_items: "{{ databases }}"
+  ignore_errors: yes
+
+- name: Create MySQL User
+  shell: mysql -e "CREATE USER IF NOT EXISTS '{{ item }}'@'localhost' IDENTIFIED BY '{{ db_pw }}';"
+  with_items: "{{ databases }}"
+  ignore_errors: yes
+
+- name: Permit User to Database
+  shell: mysql -e "GRANT ALL ON {{ item }}.* TO '{{ item }}'@'localhost';"
+  with_items: "{{ databases }}"
+  ignore_errors: yes
+
+- name: Install packages
+  apt:
+    name:
+    - apache2
+    - perl
+    - libdbd-mysql-perl
+    - build-essential
+    - libx11-dev
+    - libXext-dev
+    - libjpeg-dev
+    - libpng-dev
+    state: present
+    update_cache: yes
+  ignore_errors: yes
+
+- name: Enable modules
+  become: true
+  shell: /usr/sbin/a2enmod {{ item }}
+  with_items:
+    - CGI
+  notify: "Restart Apache"
+  ignore_errors: yes
+
+- name: Create Folder
+  file:
+    path: '{{ item }}'
+    owner: www-data
+    group: www-data
+    mode: '0775'
+    state: directory
+    recurse: yes
+  with_items:
+    - /var/www/hamnet
+    - /var/www/hamnetressources
+    - /var/www/hamnetressources/rftools
+    - /var/www/hamnetressources/tile_output
+
+- name: Clone hamnet git repo
+  become: true
+  git:
+    repo: 'https://github.com/hamnetdb/hamnetdb.git'
+    dest: /var/www/hamnet
+    version: master
+    update: yes
+    force: yes
+  ignore_errors: yes
+
+- name: Insert DB Data
+  shell: "wget -qO- 'http://hamnetdb.net/dump.cgi' | mysql --database {{ item }}"
+  with_items: "{{ databases }}"
+
+- name: Apply config file
+  template:
+    src: config.cgi.j2
+    dest: /var/www/hamnet/config.cgi
+    owner: www-data
+    group: www-data
+    mode: 0770
+
+- name: Clone dxlAPRS / rftools Tools
+  git:
+    repo: 'https://github.com/oe5hpm/dxlAPRS.git'
+    dest: /var/www/hamnetressources/rftools
+    version: master
+    update: yes
+    force: yes
+  ignore_errors: yes
+
+- name: Make rftools all
+  make:
+    chdir: /var/www/hamnetressources/rftools
+  ignore_errors: yes
+
+- name: Add local source in map
+  blockinfile:
+    path: /var/www/hamnet/osm/hamnetdb-lf.js
+    insertafter: "var satZoom = 11;"
+    marker: "//Ansible Managed Block"
+    block: |
+        }
+        else if (source == "local") //local
+        {
+          var mapnikUrl = 'http://' + window.location.hostname + ':8080/tile/{z}/{x}/{y}.png';
+          var mapnikUrl1 = 'http://' + window.location.hostname + ':8080/tile/{z}/{x}/{y}.png';
+          var landscapeUrl = 'http://' + window.location.hostname + ':8080/tiles_topo/{z}/{x}/{y}.png';
+          var cycleUrl = 'http://' + window.location.hostname + ':8080/tiles_cyclemap/{z}/{x}/{y}.pn';
+          var satUrl= 'http://' + window.location.hostname + ':8080/tiles_sat/{z}/{x}/{y}.jpg';
+          var mapnikZoom = 16 ;
+          var landscapeZoom =16;
+          var cycleZoom = 16;
+          var satZoom = 11;
+
+- name: Install HamNet Data Dump Cronjob
+  cron:
+    name: HamNet Data Cronjob
+    minute: '*/60'
+    user: root
+    job: "wget -qO- 'http://hamnetdb.net/dump.cgi' | mysql --database {{ item }}"
+  with_items: "{{ databases }}"
+
+- name: Set Permissions
+  become: true
+  file:
+    path: '{{ item }}'
+    owner: www-data
+    group: www-data
+    mode: '0775'
+    state: directory
+    recurse: yes
+  with_items:
+    - /var/www/hamnet
+    - /var/www/hamnetressources

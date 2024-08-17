@@ -185,6 +185,7 @@ Nach dem Start sollte einmal bis Zoom Level 9 die Tiles gerendert werden, das ka
      render_list -m default -a -z 9 -Z 9
 
 Docker Import:
+
     sudo docker run \
     --name openstreetmap-tile-server \
     -p 8080:80 \
@@ -195,6 +196,7 @@ Docker Import:
     import
 
 Docker Run:
+
     sudo docker run \
     --name openstreetmap-tile-server \
     -p 8080:80 \

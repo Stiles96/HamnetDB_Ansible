@@ -1,4 +1,4 @@
-# HamnetDB_Ansible
+# HamnetDB (Ansible)
 Die HamnetDB als Webseite gibt es auf GitHub (https://github.com/hamnetdb/hamnetdb) direkt für den eigenen Webspace. Ebenfalls kann die SQL Datei mit den aktullen HamnetDB Daten von https://hamnetdb.net heruntergeladen werden.
 
 ## Installation
@@ -178,3 +178,26 @@ Für die lokale OSM Server Verwendung muss der Datei "osm/hamnetdb-lf.js" folgen
         var landscapeZoom =16;
         var cycleZoom = 16;
         var satZoom = 11;
+
+# OSM Tile Server (Docker | Ansible)
+Der OSM Tile Server wird per Docker bereitgestellt. Der Container läd die Daten selbst herunter und wird nach dem Import ausgeschaltet. Bei nächsten Start wird der Container in den run mode versetzt und liefert eine Webserver mit den OSM Tiles.
+Nach dem Start sollte einmal bis Zoom Level 9 die Tiles gerendert werden, das kann im Docker mit folgendem Befehl geschehen:
+     render_list -m default -a -z 9 -Z 9
+
+Docker Import:
+    sudo docker run \
+    --name openstreetmap-tile-server \
+    -p 8080:80 \
+    -e DOWNLOAD_PBF=https://download.geofabrik.de/europe/germany-latest.osm.pbf \
+    -e DOWNLOAD_POLY=https://download.geofabrik.de/europe/germany.poly \
+    -v map-data:/data/database/ \
+    overv/openstreetmap-tile-server \
+    import
+
+Docker Run:
+    sudo docker run \
+    --name openstreetmap-tile-server \
+    -p 8080:80 \
+    -v map-data:/data/database/ \
+    -d overv/openstreetmap-tile-server \
+    run

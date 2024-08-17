@@ -1,0 +1,122 @@
+---
+- name: Create Folder
+  file:  
+    path: '{{ item }}'
+    owner: root
+    group: root
+    mode: '0775'
+    state: directory
+    recurse: yes
+  with_items:
+    - /var/www/osm
+
+- name: Create docker volume
+  become: true
+  docker_volume:
+    name: "{{ item }}"
+  with_items:
+    - osm-data
+    - osm-tiles
+  register: osmvolume
+
+- name: Import Docker Container
+  become: true
+  docker_container:
+    name: osm-server
+    image: overv/openstreetmap-tile-server:{{ osm_tile_server_version }}
+    state: started
+    restart: none
+    restart_policy: none
+    interactive: false
+    tty: yes
+    ports:
+      - "8080:80"
+    env:
+      DOWNLOAD_PBF:  "https://download.geofabrik.de/europe/germany-latest.osm.pbf"
+      DOWNLOAD_POLY: "https://download.geofabrik.de/europe/germany.poly"
+      OSM2PGSQL_EXTRA_ARGS: "-C 8096"
+      THREADS: "16"
+    volumes: 'osm-data:/data/database/'
+    command: import
+  when: osmvolume.changed
+
+- name: Get Docker details
+  docker_container_info:
+    name: osm-server
+  register: result
+
+- name: Debug docker details
+  debug:
+    var: result.container
+
+- name: Debug osmvalue
+  debug:
+    var: osmvolume.changed
+
+- name: Debug cmd
+  debug:
+    var: result.container['Config']['Cmd']
+
+- name: Debug ruuning
+  debug:
+    var: result.container['State']['Running']
+
+- name: Run Docker Container
+  become: true
+  docker_container:
+    name: osm-server
+    image: overv/openstreetmap-tile-server:{{ osm_tile_server_version }}
+    shm_size: 8g
+    state: started
+    restart: no
+    restart_policy: always
+    interactive: true
+    tty: yes
+    ports:
+      - "8080:80"
+    env:
+      OSM2PGSQL_EXTRA_ARGS: "-C 8096"
+      THREADS: "16"
+      EXPIRY_MINZOOM: "13" 
+      EXPIRY_TOUCHFROM: "13" 
+      EXPIRY_DELETEFROM: "19" 
+      EXPIRY_MAXZOOM: "20"
+      UPDATES: "enabled"
+      REPLICATION_URL: "https://planet.openstreetmap.org/replication/hour/"
+      MAX_INTERVAL_SECONDS: "60"
+    volumes: 
+      - 'osm-data:/data/database/'
+      - 'osm-tiles:/data/tiles/'
+      - '/var/www/osm/index.html:/var/www/html/index.httml:rw'
+    command: run
+  register: osmrun
+  when: not osmvolume.changed and (result.container['Config']['Cmd'] is search("import") and not result.container['State']['Running']) or result.container['Config']['Cmd'] is search("run")
+
+#- name: Copy index.html
+#  template:
+#    src: index.html
+#    dest: /var/www/osm/index.html
+#    owner: root
+#    mode: 0775
+
+#Manueal Commands:
+#
+#sudo docker run \
+#    --name openstreetmap-tile-server \
+#    -p 8080:80 \
+#    -e DOWNLOAD_PBF=https://download.geofabrik.de/europe/germany-latest.osm.pbf \
+#    -e DOWNLOAD_POLY=https://download.geofabrik.de/europe/germany.poly \
+#    -v map-data:/data/database/ \
+#    overv/openstreetmap-tile-server \
+#    import
+#
+#sudo docker run \
+#    --name openstreetmap-tile-server \
+#    -p 8080:80 \
+#    -v map-data:/data/database/ \
+#    -d overv/openstreetmap-tile-server \
+#    run
+#
+# Render Map Tiles
+# //all on Zoom 9
+# render_list -m default -a -z 9 -Z 9

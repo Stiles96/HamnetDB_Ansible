@@ -61,6 +61,13 @@
   debug:
     var: result.container['State']['Running']
 
+- name: Copy index html
+  template:
+    src: index.html
+    dest: /var/www/osm/index.html
+    owner: root
+    mode: 0775
+
 - name: Run Docker Container
   become: true
   docker_container:
@@ -87,17 +94,25 @@
     volumes: 
       - 'osm-data:/data/database/'
       - 'osm-tiles:/data/tiles/'
-      - '/var/www/osm/index.html:/var/www/html/index.httml:rw'
+      - '/var/www/osm/index.html:/var/www/html/index.html:rw'
     command: run
   register: osmrun
   when: not osmvolume.changed and (result.container['Config']['Cmd'] is search("import") and not result.container['State']['Running']) or result.container['Config']['Cmd'] is search("run")
 
-#- name: Copy index.html
-#  template:
-#    src: index.html
-#    dest: /var/www/osm/index.html
-#    owner: root
-#    mode: 0775
+- name: Copy Script
+  copy:
+    src: server.sh
+    dest: /var/www/osm/server.sh
+    owner: root
+    mode: 0775
+
+- name: Copy Service
+  copy:
+    src: osm-server.service
+    dest: /etc/systemd/system/osm-server.service
+    owner: root
+    mode: 0775
+  notify: restart osm-server
 
 #Manueal Commands:
 #

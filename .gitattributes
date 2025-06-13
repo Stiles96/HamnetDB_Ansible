@@ -1,0 +1,2 @@
+*.hgt filter=lfs diff=lfs merge=lfs -text
+*.DEM filter=lfs diff=lfs merge=lfs -text

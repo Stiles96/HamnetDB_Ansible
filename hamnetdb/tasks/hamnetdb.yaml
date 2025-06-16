@@ -147,6 +147,17 @@
     force: yes
   ignore_errors: yes
 
+- name: Create Folder
+  file:
+    path: '{{ item }}'
+    owner: www-data
+    group: www-data
+    mode: '0775'
+    state: directory
+    recurse: yes
+  with_items:
+    - /var/www/hamnet/rftools/visibility
+
 - name: Insert DB Data
   shell: "wget -qO- 'http://hamnetdb.net/dump.cgi' | mysql --database {{ item }}"
   with_items: "{{ databases }}"
